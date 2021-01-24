@@ -1,0 +1,39 @@
+FROM openjdk:11
+
+{{#ifEquals project.artifactType 'fatJar'}}
+ARG JAR_FILE=target/{{ project.artifactName }}-jar-with-dependencies.jar
+{{/ifEquals}}
+
+{{#ifEquals project.artifactType 'jar'}}
+ARG JAR_FILE=target/{{ project.artifactName }}.jar
+{{/ifEquals}}
+
+RUN mkdir /opt/authguard
+RUN mkdir /opt/authguard/config
+
+COPY config/ /opt/authguard/config
+
+COPY ${JAR_FILE} /opt/authguard
+
+{{#ifEquals project.artifactType 'jar'}}
+RUN mkdir /opt/authguard/lib
+
+# copy all dependencies
+ADD target/lib /opt/authguard/lib
+{{/ifEquals}}
+
+EXPOSE 8080
+
+{{#ifEquals project.artifactType 'fatJar'}}
+
+ENTRYPOINT ["java", "-jar", "/opt/authguard/{{ project.artifactName }}-jar-with-dependencies.jar",\
+            "--config", "/opt/authguard/config/application.yaml"]
+
+{{/ifEquals}}
+
+{{#ifEquals project.artifactType 'jar'}}
+
+ENTRYPOINT ["java", "-jar", "/opt/authguard/{{ project.artifactName }}.jar",\
+            "--config", "/opt/authguard/config/application.yaml"]
+
+{{/ifEquals}}

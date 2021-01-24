@@ -1,0 +1,50 @@
+authguard:
+  injection:
+    packages: [ "com.authguard" ]
+
+  passwords:
+    algorithm: scrypt
+    conditions:
+      minLength: 6
+
+  apiKeys:
+    type: "default"
+
+  server:
+      port: 3000
+      # TLS/SSL configuration (recommended)
+      # securePort: 8443
+      # enableSsl: true
+      # enforceSsl: true
+      # keystorePath: /path/to/keystore
+      # keystorePassword: changeit
+      # client certificate authentication
+      # enableClientAuthentication: false
+      # truststorePath: /path/to/truststore
+      # truststorePassword: changeit
+
+  exchange:
+    allowed:
+      - from: "basic"
+        to: "accessToken"
+      - from: "refreshToken"
+        to: "accessToken"
+
+  authentication:
+    generateToken: "accessToken"
+
+  accounts:
+    authguardAdminRole: "authguard_admin"
+    verifyEmail: true
+
+  apps:
+    authguardAdminClientRole: "authguard_admin_client"
+
+  oneTimeAdmin:
+    usernameVariable: "AUTHGUARD_OTA_USERNAME"
+    passwordVariable: "AUTHGUARD_OTA_PASSWORD"
+
+  emb:
+    channels:
+      - accounts
+      - auth

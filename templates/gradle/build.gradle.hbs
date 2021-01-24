@@ -1,0 +1,78 @@
+
+plugins {
+    id "java"
+    id "application"
+    
+    {{#ifEquals project.artifactType 'fatJar'}}
+    id 'com.github.johnrengelman.shadow' version '6.1.0'
+    {{/ifEquals}}
+    {{#if project.docker}}
+    id 'com.palantir.docker' version '0.25.0'
+    {{/if}}
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    jcenter()
+}
+
+ext {
+    authguardVersion = "{{ project.authguardVersion }}"
+}
+
+dependencies {
+    implementation "com.authguard:rest:$authguardVersion"
+    implementation "com.authguard:basic-auth:$authguardVersion"
+
+    {{#each extensions.standard}}
+    implementation "{{ this.groupId }}:{{ this.name }}:$authguardVersion"
+    {{/each}}
+    {{#each extensions.nonStandard}}
+    implementation "{{ this.groupId }}:{{ this.name }}:{{ this.version }}"
+    {{/each}}
+
+    {{#if dal.extensions.persistence}}
+    implementation "{{ dal.extensions.persistence.groupId }}:{{ dal.extensions.persistence.name }}:{{ dal.extensions.persistence.version }}"
+    {{/if}}
+
+    {{#if dal.extensions.cache}}
+    implementation "{{ dal.extensions.cache.groupId }}:{{ dal.extensions.cache.name }}:{{ dal.extensions.cache.version }}"
+    {{/if}}
+}
+
+application {
+    mainClassName = "com.authguard.rest.Application"
+}
+
+task copyDependencies(type: Copy) {
+    from configurations.default
+    into "${project.buildDir}/lib"
+}
+
+jar {
+    manifest {
+        attributes("Main-Class": "com.authguard.rest.Application"
+                    {{#ifEquals project.artifactType 'jar'}}
+                    ,"Class-Path": configurations.compileClasspath.collect { 'lib/' + it.getName() }.join(' ')
+                    {{/ifEquals}}
+                    )
+    }
+}
+
+{{#if project.docker}}
+docker {
+    name "{{ project.artifactName }}:{{ project.version }}"
+
+    files "config/", "$buildDir/libs/", "$buildDir/libs/"
+    
+    copySpec.with {
+        from('.') {
+            include 'config/**', 'build/libs/**', 'build/lib/**'
+            into '.'
+        }
+    }
+}
+{{/if}}
+
+build.dependsOn(copyDependencies)

@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>{{ project.groupId }}</groupId>
+    <artifactId>{{ project.artifactName }}</artifactId>
+    <version>{{ project.version }}</version>
+
+    <properties>
+        <maven.compiler.source>1.11</maven.compiler.source>
+        <maven.compiler.target>1.11</maven.compiler.target>
+
+        <authguard.version>{{ project.authguardVersion }}</authguard.version>
+
+        <exec-plugin.version>1.6.0</exec-plugin.version>
+        <jar-plugin.verion>3.2.0</jar-plugin.verion>
+        <assembly-plugin.version>3.1.1</assembly-plugin.version>
+        <dependency-plugin.version>3.1.1</dependency-plugin.version>
+
+        {{#if project.docker}}
+        <docker-maven-plugin.version>0.34.1</docker-maven-plugin.version>
+        {{/if}}
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.authguard</groupId>
+            <artifactId>rest</artifactId>
+            <version>${authguard.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.authguard</groupId>
+            <artifactId>basic-auth</artifactId>
+            <version>${authguard.version}</version>
+        </dependency>
+
+        <!-- extensions -->
+        {{#each extensions.standard}}
+        <dependency>
+            <groupId>{{ this.groupId }}</groupId>
+            <artifactId>{{ this.name }}</artifactId>
+            <version>${authguard.version}</version>
+        </dependency>
+
+        {{/each}}
+
+        {{#each extensions.nonStandard}}
+        <dependency>
+            <groupId>{{ this.groupId }}</groupId>
+            <artifactId>{{ this.name }}</artifactId>
+            <version>{{ this.version }}</version>
+        </dependency>
+
+        {{/each}}
+
+        {{#if dal.extensions.persistence}}
+        <dependency>
+            <groupId>{{ dal.extensions.persistence.groupId }}</groupId>
+            <artifactId>{{ dal.extensions.persistence.name }}</artifactId>
+            <version>{{ dal.extensions.persistence.version }}</version>
+        </dependency>
+        {{/if}}
+
+        {{#if dal.extensions.cache}}
+        <dependency>
+            <groupId>{{ dal.extensions.cache.groupId }}</groupId>
+            <artifactId>{{ dal.extensions.cache.name }}</artifactId>
+            <version>{{ dal.extensions.cache.version }}</version>
+        </dependency>
+        {{/if}}
+    </dependencies>
+
+    <build>
+        <finalName>${project.artifactId}</finalName>
+
+        <plugins>
+
+            <!-- for running the server using mvn verify -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>${exec-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                        <configuration>
+                            <mainClass>com.authguard.rest.Application</mainClass>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- package the jar -->
+
+            {{#ifEquals project.artifactType 'jar'}}
+            <!-- build a thin jar -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>${jar-plugin.verion}</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                            <mainClass>com.authguard.rest.Application</mainClass>
+                            <classpathPrefix>lib/</classpathPrefix>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+
+            <!-- copy all dependencies to build/lib -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>${dependency-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>copy-dependencies</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>
+                                ${project.build.directory}/lib/
+                            </outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            {{/ifEquals}}
+            
+            {{#ifEquals project.artifactType 'fatJar'}}
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>${assembly-plugin.version}</version>
+
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>com.authguard.rest.Application</mainClass>
+                        </manifest>
+                    </archive>
+
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                </configuration>
+
+                <executions>
+                    <execution>
+                        <id>make-assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            {{/ifEquals}}
+
+            {{#if project.docker}}
+            <!-- build the docker image -->
+            <plugin>
+                <groupId>io.fabric8</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <version>${docker-maven-plugin.version}</version>
+
+                <configuration>
+                    <images>
+                        <image>
+                            <name>{{ project.artifactName }}:${project.version}</name>
+                        </image>
+                    </images>
+                </configuration>
+            </plugin>
+
+            {{/if}}
+        </plugins>
+    </build>
+
+</project>
