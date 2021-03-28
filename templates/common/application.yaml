@@ -1,6 +1,6 @@
 authguard:
   injection:
-    packages: [ "com.authguard" ]
+    packages: [ "com.nexblocks.authguard" ]
 
   passwords:
     algorithm: scrypt

@@ -26,13 +26,13 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.authguard</groupId>
+            <groupId>com.nexblocks.authguard</groupId>
             <artifactId>rest</artifactId>
             <version>${authguard.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>com.authguard</groupId>
+            <groupId>com.nexblocks.authguard</groupId>
             <artifactId>basic-auth</artifactId>
             <version>${authguard.version}</version>
         </dependency>
@@ -74,7 +74,6 @@
     </dependencies>
 
     <build>
-        <finalName>${project.artifactId}</finalName>
 
         <plugins>
 
@@ -90,7 +89,7 @@
                             <goal>java</goal>
                         </goals>
                         <configuration>
-                            <mainClass>com.authguard.rest.Application</mainClass>
+                            <mainClass>com.nexblocks.authguard.rest.Application</mainClass>
                         </configuration>
                     </execution>
                 </executions>
@@ -108,7 +107,7 @@
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>
-                            <mainClass>com.authguard.rest.Application</mainClass>
+                            <mainClass>com.nexblocks.authguard.rest.Application</mainClass>
                             <classpathPrefix>lib/</classpathPrefix>
                         </manifest>
                     </archive>
@@ -146,9 +145,12 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>com.authguard.rest.Application</mainClass>
+                            <mainClass>com.nexblocks.authguard.rest.Application</mainClass>
                         </manifest>
                     </archive>
+
+                    <finalName>${project.artifactId}-standalone</finalName>
+                    <appendAssemblyId>false</appendAssemblyId>
 
                     <descriptorRefs>
                         <descriptorRef>jar-with-dependencies</descriptorRef>
