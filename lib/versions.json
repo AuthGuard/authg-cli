@@ -1,0 +1,10 @@
+{
+    "authguard": [
+        "0.7.0",
+        "0.8.0"
+    ],
+    "nonStandardExtensions": [
+        "0.7.0",
+        "0.8.0"
+    ]
+}
