@@ -10,6 +10,20 @@ authguard:
   apiKeys:
     type: "default"
 
+  accounts:
+    authguardAdminRole: "authguard_admin"
+    verifyEmail: true
+
+  apps:
+    authguardAdminClientRole: "authguard_admin_client"
+
+  oneTimeAdmin:
+    usernameVariable: "AUTHGUARD_OTA_USERNAME"
+    passwordVariable: "AUTHGUARD_OTA_PASSWORD"
+
+  external:
+    email: true
+
   server:
       port: 3000
       # TLS/SSL configuration (recommended)
@@ -24,27 +38,62 @@ authguard:
       # truststorePassword: changeit
 
   exchange:
+    providers: [ "accessToken", "session" ]
     allowed:
       - from: "basic"
+        to: "passwordless"
+      - from: "passwordless"
         to: "accessToken"
-      - from: "refreshToken"
+      - from: "basic"
+        to: "otp"
+      - from: "otp"
+        to: "accessToken"
+      - from: "refresh"
+        to: "accessToken"
+      - from: "basic"
         to: "accessToken"
 
   authentication:
     generateToken: "accessToken"
+    logoutToken: "accessToken"
 
-  accounts:
-    authguardAdminRole: "authguard_admin"
-    verifyEmail: true
+  # JWT
+  jwt:
+    algorithm: "HMAC256"
+    privateKey: "keys/hmac256.pem"
+    issuer: "AuthGuard"
+    allowedAlgorithms: ["HMAC256"]
+    trustedIssuers: ["self"]
+    encryption:
+      algorithm: "AES_CBC"
+      privateKey: "keys/aes128.txt"
+  
+  accessToken:
+    tokenLife: "10m"
+    refreshTokenLife: "1d"
+    useJti: true
+    includeRoles: true
 
-  apps:
-    authguardAdminClientRole: "authguard_admin_client"
+  idToken:
+    tokenLife: "1h"
+    refreshTokenLife: "1d"
+    useJti: true
 
-  oneTimeAdmin:
-    usernameVariable: "AUTHGUARD_OTA_USERNAME"
-    passwordVariable: "AUTHGUARD_OTA_PASSWORD"
+  # OTP & PWDLESS
+  otp:
+    lifeTime: "5m"
+    mode: "NUMERIC"
+    length: 6
+    generateToken: "accessToken"
+
+  passwordless:
+    tokenLife: "10m"
+    randomSize: 128
+    generateToken: "accessToken"
 
   emb:
     channels:
       - accounts
       - auth
+      - passwordless
+      - otp
