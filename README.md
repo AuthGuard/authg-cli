@@ -29,8 +29,19 @@ After the distribution project was created, go to its directory and run
 ```
 authg build
 ```
-The build command is just a wrapper around either Maven or Gradle, depending on which 
-one you chose to build your project. As well as Docker, if enabled.
+The build command is just a wrapper around either Maven or Gradle, depending on 
+which one you chose to build your project. As well as Docker, if enabled.
+
+To generate JWT keys you can use execute the following (OpenSSL must be installed)
+```
+authg generate-keys <algorithm>
+```
+Available algorithms are:
+* RSA256
+* RSA512
+* EC256
+* EC512
+* EC256K
 
 ## Build Types
 With the CLI, you have the option to build: a thin jar, a fat jar, or a native image 
